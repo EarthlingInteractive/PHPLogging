@@ -1,0 +1,28 @@
+{
+	"name": "earthit/logging",
+	"description": "Simple callback-based logging infrastructure",
+	"license": "MIT",
+
+
+	"require": {
+		"php": ">=5.2"
+	},
+	"autoload": {
+		"psr-0": {
+			"EarthIT_Logging": "lib/"
+		}
+	},
+
+
+	"require-dev": {
+		"phpunit/phpunit": "~3.7"
+	},
+	"autoload-dev": {
+		"psr-0": {
+			"EarthIT_Logging": "test/"
+		}
+	},
+	"scripts": {
+		"test": "vendor/bin/phpunit --bootstrap vendor/autoload.php test/"
+	}
+}
