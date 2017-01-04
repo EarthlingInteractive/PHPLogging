@@ -27,6 +27,7 @@ trait EarthIT_Logging_LogHelperGears
 		$thing = new EarthIT_Logging_AnnotatedEvent( $thing, [
 			EarthIT_Logging_AnnotatedEvent::MD_COMPONENT_CLASS_NAME => get_class($this),
 			EarthIT_Logging_AnnotatedEvent::MD_LEVEL => $level,
+			EarthIT_Logging_AnnotatedEvent::MD_TIME => microtime(true),
 		] );
 		
 		call_user_func($this->logger, $thing, $level);

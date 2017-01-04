@@ -12,6 +12,7 @@ class EarthIT_Logging_LogHelperGearsTest extends PHPUnit_Framework_TestCase
 	
 	public function testLog() {
 		$this->log("Hello, world!");
+		usleep(1000); // because we're going to compare times later
 		$this->log("Goodbye, world!", "OH LOOK A ZEBRA!!");
 		
 		$events = $this->logger->getEvents();
@@ -20,5 +21,6 @@ class EarthIT_Logging_LogHelperGearsTest extends PHPUnit_Framework_TestCase
 		$this->assertInstanceOf(EarthIT_Logging_AnnotatedEvent::class, $events[1]);
 		
 		$this->assertEquals( "Hello, world!", $events[0]->getEvent() );
+		$this->assertTrue( $events[1]->time > $events[0]->time );
 	}
 }
