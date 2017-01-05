@@ -6,6 +6,35 @@
  */
 trait EarthIT_Logging_LogHelperGears
 {
+	protected $groupMd = array();
+	protected $groupIdStack = array();
+	
+	// {open|close}LogGroup affect the next call to a logging function.
+	
+	protected function openLogGroup() {
+		$groupId = uniqid();
+		$this->groupIdStack[] = $groupId;
+		if( isset($this->groupMd[EarthIT_Logging_AnnotatedEvent::MD_OPENS_GROUP_ID]) ) {
+			// TODO: Could just generate a blank event and carry on.
+			throw new Exception("Can't open more than one group per event!");
+		}
+		$this->groupMd[EarthIT_Logging_AnnotatedEvent::MD_OPENS_GROUP_ID] = $groupId;
+		return $this;
+	}
+	
+	protected function closeLogGroup() {
+		if( count($this->groupIdStack) == 0 ) {
+			throw new Exception("LogHelperGears: Group ID stack underflow!");
+		}
+		if( isset($this->groupMd[EarthIT_Logging_AnnotatedEvent::MD_CLOSES_GROUP_ID]) ) {
+			// TODO: Could just generate a blank event and carry on.
+			throw new Exception("Can't close more than one group per event!");
+		}
+		$closedGroupId = array_pop($this->groupIdStack);
+		$this->groupMd[EarthIT_Logging_AnnotatedEvent::MD_CLOSES_GROUP_ID] = $closedGroupId;
+		return $this;
+	}
+
 	protected function _log( $level, array $stuff ) {
 		$thing = "";
 		if( count($stuff) > 1 ) {
@@ -24,13 +53,15 @@ trait EarthIT_Logging_LogHelperGears
 			}, $stuff));
 		} else foreach( $stuff as $thing );
 
-		$thing = new EarthIT_Logging_AnnotatedEvent( $thing, [
+		$thing = new EarthIT_Logging_AnnotatedEvent( $thing, array(
 			EarthIT_Logging_AnnotatedEvent::MD_COMPONENT_CLASS_NAME => get_class($this),
 			EarthIT_Logging_AnnotatedEvent::MD_LEVEL => $level,
 			EarthIT_Logging_AnnotatedEvent::MD_TIME => microtime(true),
-		] );
+		) + $this->groupMd );
 		
 		call_user_func($this->logger, $thing, $level);
+		
+		$this->groupMd = array();
 	}
 	
 	// These are defined with a single $event argument
