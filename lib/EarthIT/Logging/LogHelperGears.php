@@ -6,32 +6,37 @@
  */
 trait EarthIT_Logging_LogHelperGears
 {
-	protected $groupMd = array();
-	protected $groupIdStack = array();
+	// Leave these unset by default
+	// so they pollute whatever class inherits them less.
+	protected $_logGroupMd;
+	protected $_logGroupIdStack;
 	
 	// {open|close}LogGroup affect the next call to a logging function.
 	
 	protected function openLogGroup() {
 		$groupId = uniqid();
-		$this->groupIdStack[] = $groupId;
-		if( isset($this->groupMd[EarthIT_Logging_AnnotatedEvent::MD_OPENS_GROUP_ID]) ) {
+		if( !isset($this->_logGroupIdStack) ) $this->_logGroupIdStack = array();
+		$this->_logGroupIdStack[] = $groupId;
+		if( !isset($this->_logGroupMd) ) $this->_logGroupMd = array();
+		if( isset($this->_logGroupMd[EarthIT_Logging_AnnotatedEvent::MD_OPENS_GROUP_ID]) ) {
 			// TODO: Could just generate a blank event and carry on.
 			throw new Exception("Can't open more than one group per event!");
 		}
-		$this->groupMd[EarthIT_Logging_AnnotatedEvent::MD_OPENS_GROUP_ID] = $groupId;
+		$this->_logGroupMd[EarthIT_Logging_AnnotatedEvent::MD_OPENS_GROUP_ID] = $groupId;
 		return $this;
 	}
 	
 	protected function closeLogGroup() {
-		if( count($this->groupIdStack) == 0 ) {
+		if( !isset($this->_logGroupIdStack) or count($this->_logGroupIdStack) == 0 ) {
 			throw new Exception("LogHelperGears: Group ID stack underflow!");
 		}
-		if( isset($this->groupMd[EarthIT_Logging_AnnotatedEvent::MD_CLOSES_GROUP_ID]) ) {
+		if( !isset($this->_logGroupMd) ) $this->_logGroupMd = array();
+		if( isset($this->_logGroupMd[EarthIT_Logging_AnnotatedEvent::MD_CLOSES_GROUP_ID]) ) {
 			// TODO: Could just generate a blank event and carry on.
 			throw new Exception("Can't close more than one group per event!");
 		}
-		$closedGroupId = array_pop($this->groupIdStack);
-		$this->groupMd[EarthIT_Logging_AnnotatedEvent::MD_CLOSES_GROUP_ID] = $closedGroupId;
+		$closedGroupId = array_pop($this->_logGroupIdStack);
+		$this->_logGroupMd[EarthIT_Logging_AnnotatedEvent::MD_CLOSES_GROUP_ID] = $closedGroupId;
 		return $this;
 	}
 
@@ -53,15 +58,16 @@ trait EarthIT_Logging_LogHelperGears
 			}, $stuff));
 		} else foreach( $stuff as $thing );
 
+		$groupMd = isset($this->_logGroupMd) ? $this->_logGroupMd : array();
 		$thing = new EarthIT_Logging_AnnotatedEvent( $thing, array(
 			EarthIT_Logging_AnnotatedEvent::MD_COMPONENT_CLASS_NAME => get_class($this),
 			EarthIT_Logging_AnnotatedEvent::MD_LEVEL => $level,
 			EarthIT_Logging_AnnotatedEvent::MD_TIME => microtime(true),
-		) + $this->groupMd );
+		) + $groupMd );
 		
 		call_user_func($this->logger, $thing, $level);
 		
-		$this->groupMd = array();
+		unset($this->_logGroupMd);
 	}
 	
 	// These are defined with a single $event argument
