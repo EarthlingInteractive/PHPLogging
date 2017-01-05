@@ -45,6 +45,38 @@ class EarthIT_LoggingTest extends PHPUnit_Framework_TestCase
 		);
 	}
 	
+	public function testTextLoggerWithGroup() {
+		$thneed = new EarthIT_Logging_Thneed();
+		$logger = new EarthIT_Logging_TextLogger( $thneed );
+		$logger("One");
+		$logger(new EarthIT_Logging_AnnotatedEvent("Open group0", array(
+			EarthIT_Logging_AnnotatedEvent::MD_OPENS_GROUP_ID => 'group0',
+			EarthIT_Logging_AnnotatedEvent::MD_TIME => 1,
+		)));
+		$logger(new EarthIT_Logging_AnnotatedEvent("Open group1\nAnd also hello!", array(
+			EarthIT_Logging_AnnotatedEvent::MD_OPENS_GROUP_ID => 'group1',
+			EarthIT_Logging_AnnotatedEvent::MD_TIME => 2,
+		)));
+		$logger(new EarthIT_Logging_AnnotatedEvent("Close group1", array(
+			EarthIT_Logging_AnnotatedEvent::MD_CLOSES_GROUP_ID => 'group1',
+			EarthIT_Logging_AnnotatedEvent::MD_TIME => 3,
+		)));
+		$logger(new EarthIT_Logging_AnnotatedEvent("Close group0", array(
+			EarthIT_Logging_AnnotatedEvent::MD_CLOSES_GROUP_ID => 'group0',
+			EarthIT_Logging_AnnotatedEvent::MD_TIME => 4,
+		)));
+		
+		$this->assertEquals(
+			"-- One\n".
+			"-- Open group0\n".
+			"  -- Open group1\n".
+			"  And also hello!\n".
+			"  -- Close group1 (group took 1.000000 seconds)\n".
+			"-- Close group0 (group took 3.000000 seconds)\n",
+			(string)$thneed
+		);
+	}
+	
 	public function testMultiLogger() {
 		$tempFile = tempnam(sys_get_temp_dir(), 'test.log');
 		

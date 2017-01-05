@@ -7,6 +7,8 @@ class EarthIT_Logging_AnnotatedEvent
 	const MD_TIME = 'time'; // microtime(true) of the event
 	const MD_BEGIN_TIME = 'beginTime'; // microtime(true) at which the event began
 	const MD_END_TIME = 'endTime'; // microtime(true) at which the event ended
+	const MD_OPENS_GROUP_ID = 'beginsGroupId'; // If this event opens a group, this is the group's ID
+	const MD_CLOSES_GROUP_ID = 'endsGroupId'; // ID of the group that this event closes.
 	
 	protected $event;
 	protected $metadata;
@@ -30,6 +32,8 @@ class EarthIT_Logging_AnnotatedEvent
 		switch( $k ) {
 		case 'beginTime': return $this->getMd(self::MD_BEGIN_TIME, self::MD_TIME);
 		case 'endTime': return $this->getMd(self::MD_END_TIME, self::MD_TIME);
+		case 'opensGroupId' : return $this->getMd(self::MD_OPENS_GROUP_ID);
+		case 'closesGroupId' : return $this->getMd(self::MD_CLOSES_GROUP_ID);
 		case 'time': return $this->getMd(self::MD_TIME, self::MD_BEGIN_TIME);
 		case 'event': return $this->getEvent();
 		case 'level': return $this->getMd(self::MD_LEVEL);
